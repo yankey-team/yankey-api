@@ -20,7 +20,6 @@ export interface OfficeSignUpPayload {
   name: string;
   domain: string;
   loyaltyPercentage: number;
-  telegramKey: string;
   admin: {
     username: string;
     password: string;
@@ -48,24 +47,14 @@ export interface OperatorUpdatePayload {
 export interface UserCreatePayload {
   displayName: string;
   phoneNumber: string;
-  telegramId: string;
 }
 
 export interface UserUpdatePayload {
   displayName?: string;
   phoneNumber?: string;
-  telegramId?: string;
 }
 
 export interface MerchantUpdatePayload {
   name?: string;
   loyaltyPercentage?: number;
-  telegramKey?: string;
-  telegram_key?: string;
-}
-
-// Request Headers
-export interface TelegramHeaders {
-  'x-telegram-key': string;
-  'x-telegram-user-id': string;
 }

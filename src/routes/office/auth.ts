@@ -11,12 +11,11 @@ const officeAuth: FastifyPluginAsync = async (fastify): Promise<void> => {
       tags: ['office'],
       body: {
         type: 'object',
-        required: ['name', 'domain', 'loyaltyPercentage', 'telegramKey', 'admin'],
+        required: ['name', 'domain', 'loyaltyPercentage', 'admin'],
         properties: {
           name: { type: 'string' },
           domain: { type: 'string' },
           loyaltyPercentage: { type: 'number' },
-          telegramKey: { type: 'string' },
           admin: {
             type: 'object',
             required: ['username', 'password', 'displayName'],
@@ -30,7 +29,7 @@ const officeAuth: FastifyPluginAsync = async (fastify): Promise<void> => {
       }
     },
     handler: async (request, reply) => {
-      const { name, domain, loyaltyPercentage, telegramKey, admin } = request.body;
+      const { name, domain, loyaltyPercentage, admin } = request.body;
       const merchantModel = new MerchantModel();
       const operatorModel = new OperatorModel('');
 
@@ -45,8 +44,7 @@ const officeAuth: FastifyPluginAsync = async (fastify): Promise<void> => {
       const merchantResult = await merchantModel.createMerchant({
         name,
         domain,
-        loyaltyPercentage,
-        telegramKey
+        loyaltyPercentage
       });
       if (merchantResult.error || !merchantResult.data) {
         reply.code(500).send({ error: merchantResult.error || 'Could not create merchant' });

@@ -8,7 +8,6 @@ export interface IUser {
   id: ID;
   displayName: string;
   phoneNumber: string;
-  telegramId: ID;
 }
 
 /**
@@ -16,6 +15,5 @@ export interface IUser {
  */
 export const UserSchema = new Schema<IUser>({
   displayName: { type: String, required: true },
-  phoneNumber: { type: String, required: true },
-  telegramId: { type: String, required: true },
+  phoneNumber: { type: String, required: true }
 }, { timestamps: true });

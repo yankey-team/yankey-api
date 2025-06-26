@@ -8,20 +8,6 @@ const userAuthRoutes: FastifyPluginAsync = async (fastify): Promise<void> => {
     schema: {
       description: 'Authenticate user using display name and phone number',
       tags: ['user'],
-      headers: {
-        type: 'object',
-        required: ['x-telegram-key', 'x-telegram-user-id'],
-        properties: {
-          'x-telegram-key': { 
-            type: 'string',
-            description: 'Telegram Bot API Key'
-          },
-          'x-telegram-user-id': { 
-            type: 'string',
-            description: 'Telegram User ID'
-          }
-        }
-      },
       body: {
         type: 'object',
         required: ['displayName', 'phoneNumber'],
@@ -47,21 +33,14 @@ const userAuthRoutes: FastifyPluginAsync = async (fastify): Promise<void> => {
     },
     handler: async (request, reply) => {
       const { displayName, phoneNumber } = request.body;
-      const telegramId = request.headers['x-telegram-user-id'] as string;
       const userModel = new UserModel(request.merchant.id);
-      let user;
-      const { data: foundUser } = await userModel.findByTelegramId(telegramId);
-      if (foundUser) {
-        user = foundUser;
-      } else {
-        const { data: createdUser } = await userModel.createUserWithTelegram({ displayName, phoneNumber, telegramId });
-        user = createdUser;
-      }
-      if (!user) {
-        return reply.code(400).send({ error: 'User could not be created or found' });
+      // Only create user, no telegram logic
+      const { data: createdUser } = await userModel.createUser({ displayName, phoneNumber });
+      if (!createdUser) {
+        return reply.code(400).send({ error: 'User could not be created' });
       }
       const token = await reply.jwtSign({
-        id: user.id.toString(),
+        id: createdUser.id.toString(),
         type: 'user',
         merchantId: request.merchant.id
       });

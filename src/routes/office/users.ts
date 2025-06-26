@@ -31,7 +31,6 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
                   id: { type: 'string' },
                   displayName: { type: 'string' },
                   phoneNumber: { type: 'string' },
-                  telegram_id: { type: 'string' },
                   balance: { type: 'number' }
                 }
               }
@@ -58,7 +57,6 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
           id: u._id?.toString() || u.id,
           displayName: u.displayName,
           phoneNumber: u.phoneNumber,
-          telegram_id: u.telegramId,
           balance: balances[i]
         }))
       };

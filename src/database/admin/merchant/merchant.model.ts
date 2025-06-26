@@ -76,8 +76,7 @@ export class MerchantModel {
     const defaultData = {
       name: 'Demo Merchant',
       domain: defaultDomain,
-      loyaltyPercentage: 2.5,
-      telegramKey: 'demo-telegram-key',
+      loyaltyPercentage: 2.5
     };
     const created = await this.model.create(defaultData);
     if (created) {

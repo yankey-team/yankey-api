@@ -119,47 +119,6 @@ export class UserModel {
   }
 
   /**
-   * Finds a user by telegramId and merchantId.
-   */
-  async findByTelegramId(telegramId: string) {
-    try {
-      const user = await this.model.findOne({ telegramId }).lean();
-      if (user) return { data: user };
-      return { error: 'User not found' };
-    } catch (err) {
-      console.error('findByTelegramId error:', err);
-      return { error: 'Database error while finding user by telegramId' };
-    }
-  }
-
-  /**
-   * Creates a new user.
-   */
-  async createUserWithTelegram({ displayName, phoneNumber, telegramId }: { displayName: string, phoneNumber: string, telegramId: string }) {
-    try {
-      const user = await this.model.create({ displayName, phoneNumber, telegramId });
-      return { data: user.toObject() };
-    } catch (err) {
-      console.error('createUserWithTelegram error:', err);
-      return { error: 'Database error while creating user' };
-    }
-  }
-
-  /**
-   * Finds a user by _id, merchantId, and telegramId.
-   */
-  async findByIdMerchantAndTelegram(id: string, merchantId: string, telegramId: string) {
-    try {
-      const user = await this.model.findOne({ _id: id, merchantId, telegramId }).lean();
-      if (user) return { data: user };
-      return { error: 'User not found' };
-    } catch (err) {
-      console.error('findByIdMerchantAndTelegram error:', err);
-      return { error: 'Database error while finding user' };
-    }
-  }
-
-  /**
    * Finds users by merchantId and last 4 digits of phone number.
    */
   async searchByLast4(merchantId: string, last4: string) {

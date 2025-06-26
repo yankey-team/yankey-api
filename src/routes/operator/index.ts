@@ -44,7 +44,6 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
                   id: { type: 'string' },
                   displayName: { type: 'string' },
                   phoneNumber: { type: 'string' },
-                  telegram_id: { type: 'string' },
                   balance: { type: 'number' }
                 }
               }
@@ -65,7 +64,6 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
           id: u._id?.toString(),
           displayName: u.displayName,
           phoneNumber: u.phoneNumber,
-          telegram_id: u.telegramId,
           balance: 0
         }))
       };

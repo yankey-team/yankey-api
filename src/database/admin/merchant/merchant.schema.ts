@@ -9,7 +9,6 @@ export interface IMerchant {
   name: string;
   domain: string;
   loyaltyPercentage: number;
-  telegramKey: string;
 }
 
 /**
@@ -18,6 +17,5 @@ export interface IMerchant {
 export const MerchantSchema = new Schema<IMerchant>({
   name: { type: String, required: true },
   domain: { type: String, required: true, unique: true },
-  loyaltyPercentage: { type: Number, required: true },
-  telegramKey: { type: String, required: true },
+  loyaltyPercentage: { type: Number, required: true }
 }, { timestamps: true });

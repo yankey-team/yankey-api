@@ -9,14 +9,6 @@ const user: FastifyPluginAsync = async (fastify): Promise<void> => {
     schema: {
       description: 'Get user balance and merchant information',
       tags: ['user'],
-      headers: {
-        type: 'object',
-        required: ['x-telegram-key', 'x-telegram-user-id'],
-        properties: {
-          'x-telegram-key': { type: 'string' },
-          'x-telegram-user-id': { type: 'string' }
-        }
-      },
       security: [{ bearerAuth: [] }],
       response: {
         200: {
@@ -37,15 +29,11 @@ const user: FastifyPluginAsync = async (fastify): Promise<void> => {
     onRequest: [fastify.authenticate('user')],
     handler: async (request, reply) => {
       const userModel = new UserModel(request.merchant.id);
-      const { data: user, error } = await userModel.findByIdMerchantAndTelegram(
-        request.user.id,
-        request.merchant.id,
-        request.telegramId
-      );
+      const { data: user, error } = await userModel.findUserById(request.user.id);
       if (error || !user) {
         return { balance: 0 };
       }
-      const { data: balance } = await userModel.balance(user._id.toString());
+      const { data: balance } = await userModel.balance(user.id.toString());
       return {
         balance: balance || 0,
         merchant: {

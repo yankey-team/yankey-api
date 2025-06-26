@@ -7,7 +7,7 @@ export default fp(async (fastify) => {
     openapi: {
       info: {
         title: "Yankey API Documentation",
-        description: "API documentation for Yankey loyalty cashback platform.\n\nAuthentication:\n- User endpoints require JWT Bearer token and Telegram headers.\n- Operator endpoints require JWT Bearer token.\n\nAll endpoints are grouped by user type.",
+        description: "API documentation for Yankey loyalty cashback platform.\n\nAuthentication:\n- User endpoints require JWT Bearer token.\n- Operator endpoints require JWT Bearer token.\n\nAll endpoints are grouped by user type.",
         version: "1.0.0"
       },
       servers: [
@@ -81,12 +81,11 @@ export default fp(async (fastify) => {
   fastify.addSchema({
     $id: 'user',
     type: 'object',
-    required: ['id', 'displayName', 'phoneNumber', 'telegramId'],
+    required: ['id', 'displayName', 'phoneNumber'],
     properties: {
       id: { type: 'string', description: 'User ID', example: 'usr_123' },
       displayName: { type: 'string', description: 'User display name', example: 'John Doe' },
-      phoneNumber: { type: 'string', description: 'User phone number', example: '+1234567890' },
-      telegramId: { type: 'string', description: 'Telegram user ID', example: 'tg_456' }
+      phoneNumber: { type: 'string', description: 'User phone number', example: '+1234567890' }
     },
     description: 'User entity.'
   });
@@ -116,19 +115,5 @@ export default fp(async (fastify) => {
       operatorId: { type: 'string', description: 'Operator ID', example: 'op_456' }
     },
     description: 'Transaction entity.'
-  });
-
-  fastify.addSchema({
-    $id: 'merchant',
-    type: 'object',
-    required: ['id', 'name', 'domain', 'loyaltyPercentage', 'telegramKey'],
-    properties: {
-      id: { type: 'string', description: 'Merchant ID', example: 'mrc_001' },
-      name: { type: 'string', description: 'Merchant name', example: 'Demo Merchant' },
-      domain: { type: 'string', description: 'Merchant domain', example: 'demo.yankey.local' },
-      loyaltyPercentage: { type: 'number', description: 'Loyalty percentage', example: 2.5 },
-      telegramKey: { type: 'string', description: 'Telegram bot key', example: 'demo-telegram-key' }
-    },
-    description: 'Merchant entity.'
   });
 });

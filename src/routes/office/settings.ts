@@ -15,8 +15,7 @@ const officeSettings: FastifyPluginAsync = async (fastify): Promise<void> => {
           properties: {
             name: { type: 'string' },
             domain: { type: 'string' },
-            loyaltyPercentage: { type: 'number' },
-            telegram_key: { type: 'string' }
+            loyaltyPercentage: { type: 'number' }
           }
         }
       }
@@ -29,12 +28,10 @@ const officeSettings: FastifyPluginAsync = async (fastify): Promise<void> => {
         reply.code(404).send({ error: error || 'Merchant not found' });
         return;
       }
-      // Map telegramKey to telegram_key for response
       return {
         name: merchant.name,
         domain: merchant.domain,
-        loyaltyPercentage: merchant.loyaltyPercentage,
-        telegram_key: merchant.telegramKey
+        loyaltyPercentage: merchant.loyaltyPercentage
       };
     }
   });
@@ -49,19 +46,17 @@ const officeSettings: FastifyPluginAsync = async (fastify): Promise<void> => {
         type: 'object',
         properties: {
           name: { type: 'string' },
-          loyaltyPercentage: { type: 'number' },
-          telegram_key: { type: 'string' }
+          loyaltyPercentage: { type: 'number' }
         }
       }
     },
     onRequest: [fastify.authenticate('operator')],
     handler: async (request, reply) => {
-      const { name, loyaltyPercentage, telegramKey } = request.body;
+      const { name, loyaltyPercentage } = request.body;
       const merchantModel = new MerchantModel();
       const updateData: any = {};
       if (name) updateData.name = name;
       if (loyaltyPercentage) updateData.loyaltyPercentage = loyaltyPercentage;
-      if (telegramKey) updateData.telegramKey = telegramKey;
       const { data: merchant, error } = await merchantModel.updateMerchantById(request.user.merchantId, updateData);
       if (error || !merchant) {
         reply.code(404).send({ error: error || 'Merchant not found' });
@@ -70,8 +65,7 @@ const officeSettings: FastifyPluginAsync = async (fastify): Promise<void> => {
       return {
         name: merchant.name,
         domain: merchant.domain,
-        loyaltyPercentage: merchant.loyaltyPercentage,
-        telegram_key: merchant.telegramKey
+        loyaltyPercentage: merchant.loyaltyPercentage
       };
     }
   });
