@@ -1,5 +1,6 @@
 import { Schema } from "mongoose";
 import { ID } from "../../../types";
+import { modifySchema } from "../../utils";
 
 /**
  * ITransaction represents a transaction in the system.
@@ -17,11 +18,11 @@ export interface ITransaction {
 /**
  * TransactionSchema defines the structure of the Transaction collection in MongoDB.
  */
-export const TransactionSchema = new Schema<ITransaction>({
+export const TransactionSchema = modifySchema(new Schema<ITransaction>({
   type: { type: String, enum: ['check-in', 'check-out'], required: true },
   amount: { type: Number, required: true },
   checkOutAmount: { type: Number, default: 0 },
   loyaltyPercentage: { type: Number, required: true },
   userId: { type: String, required: true },
   operatorId: { type: String, required: true },
-}, { timestamps: true });
+}, { timestamps: true }));

@@ -21,17 +21,22 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
         200: {
           type: 'object',
           properties: {
-            total: { type: 'integer' },
-            limit: { type: 'integer' },
-            page: { type: 'integer' },
-            operators: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  id: { type: 'string' },
-                  username: { type: 'string' },
-                  displayName: { type: 'string' }
+            data: {
+              type: 'object',
+              properties: {
+                total: { type: 'integer' },
+                limit: { type: 'integer' },
+                page: { type: 'integer' },
+                operators: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      username: { type: 'string' },
+                      displayName: { type: 'string' }
+                    }
+                  }
                 }
               }
             }
@@ -49,14 +54,16 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
       const start = (page - 1) * limit;
       const pagedOperators = safeOperators.slice(start, start + limit);
       return {
-        total: safeOperators.length,
-        limit,
-        page,
-        operators: pagedOperators.map(e => ({
-          id: e._id?.toString(),
-          username: e.username,
-          displayName: e.displayName
-        }))
+        data: {
+          total: safeOperators.length,
+          limit,
+          page,
+          operators: pagedOperators.map(e => ({
+            id: e._id?.toString(),
+            username: e.username,
+            displayName: e.displayName
+          }))
+        }
       };
     }
   });
@@ -98,9 +105,11 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
       }
       const { password: _, ...operatorData } = operatorResult.data;
       return {
-        id: operatorResult.data._id?.toString(),
-        username: operatorData.username,
-        displayName: operatorData.displayName
+        data: {
+          id: operatorResult.data._id?.toString(),
+          username: operatorData.username,
+          displayName: operatorData.displayName
+        }
       };
     }
   });
@@ -141,9 +150,11 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
       }
       const { password: _, ...operatorData } = updated;
       return {
-        id: updated._id?.toString(),
-        username: operatorData.username,
-        displayName: operatorData.displayName
+        data: {
+          id: updated._id?.toString(),
+          username: operatorData.username,
+          displayName: operatorData.displayName
+        }
       };
     }
   });
@@ -175,7 +186,7 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
         reply.code(404).send({ error: error || 'Operator not found' });
         return;
       }
-      return { success: true };
+      return { data: { success: true } };
     }
   });
 };

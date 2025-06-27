@@ -16,13 +16,7 @@ export default fp(async (fastify) => {
 
   fastify.addHook('onRequest', async (request: FastifyRequest) => {
     // Skip merchant verification for Swagger documentation
-    if (request.url.startsWith('/docs') || request.url.startsWith('/documentation/')) {
-      const merchantModel = new MerchantModel();
-      const { data: defaultMerchant, error } = await merchantModel.getDefaultMerchant();
-      if (error || !defaultMerchant) {
-        throw new Error(error || 'No merchants found in the database');
-      }
-      request.merchant = defaultMerchant;
+    if (request.url.startsWith('/docs') || request.url.startsWith('/office/auth')) {
       return;
     }
 
@@ -32,10 +26,12 @@ export default fp(async (fastify) => {
     }
 
     const merchantModel = new MerchantModel();
-    const { data: merchantDoc, error } = await merchantModel.getMerchantByDomain(host);
-    if (error || !merchantDoc) {
+    // I am getting host like demo.yankey.local:3000, but It should be without port.
+    const domain = host.includes(':') ? host.split(':')[0] : host; // Remove port only if present
+    const { data: merchant, error } = await merchantModel.getMerchantByDomain(domain);
+    if (error || !merchant) {
       throw new Error(error || 'Merchant not found');
     }
-    request.merchant = merchantDoc;
+    request.merchant = merchant;
   });
 });

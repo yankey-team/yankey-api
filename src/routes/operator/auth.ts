@@ -4,7 +4,7 @@ import { OperatorAuthPayload } from '../../types/data';
 import { OperatorModel } from '../../database/client/operator/operator.model';
 
 const operatorAuthRoutes = async (fastify: FastifyInstance) => {
-  fastify.post<{ Body: OperatorAuthPayload; Reply: { token: string } | { error: string } }>(
+  fastify.post<{ Body: OperatorAuthPayload }>(
     '/auth/login',
     {
       schema: {
@@ -22,7 +22,12 @@ const operatorAuthRoutes = async (fastify: FastifyInstance) => {
           200: {
             type: 'object',
             properties: {
-              token: { type: 'string' }
+              data: {
+                type: 'object',
+                properties: {
+                  token: { type: 'string' }
+                }
+              }
             }
           },
           401: {
@@ -54,7 +59,7 @@ const operatorAuthRoutes = async (fastify: FastifyInstance) => {
             merchantId: request.merchant.id,
           });
 
-          return reply.send({ token });
+          return reply.send({ data: { token } });
         } catch (err) {
           request.log.error(err, 'Operator login failed');
           return reply.code(500).send({ error: 'Internal server error' });

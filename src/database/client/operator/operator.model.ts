@@ -182,13 +182,13 @@ export class OperatorModel {
   /**
    * Finds all operators for a given merchant.
    */
-  async findAllByMerchant(merchantId: string) {
+  async findAllByMerchant(merchantId: ID) {
     try {
-      const operators = await this.model.find({ merchantId }).lean();
+      const operators = await this.model.find({}).lean();
       return { data: operators };
     } catch (err) {
       console.error('findAllByMerchant error:', err);
-      return { error: 'Database error while finding operators' };
+      return { error: 'Database error while finding operators by merchant' };
     }
   }
 

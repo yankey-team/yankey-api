@@ -18,9 +18,9 @@ export class MerchantModel {
    */
   async getMerchantByDomain(domain: string) {
     try {
-      const merchant = await this.model.findOne({ domain }).lean();
+      const merchant = await this.model.findOne({ domain });
       if (merchant) {
-        return { data: merchant };
+        return { data: merchant.toObject() };
       }
       return { error: 'Could not find merchant' };
     } catch (err) {
@@ -36,7 +36,7 @@ export class MerchantModel {
     try {
       const createdMerchant = await this.model.create(data);
       if (createdMerchant) {
-        return { data: await this.model.findById(createdMerchant._id).lean() };
+        return { data: (await this.model.findById(createdMerchant._id))?.toObject() };
       }
       return { error: 'Could not create a merchant' };
     } catch (err) {
@@ -52,8 +52,8 @@ export class MerchantModel {
     try {
       const merchant = await this.model.findById(id).lean();
       if (merchant) {
-        const updatedMerchant = await this.model.findByIdAndUpdate(merchant._id, data, { new: true }).lean();
-        return { data: updatedMerchant };
+        const updatedMerchant = await this.model.findByIdAndUpdate(merchant._id, data, { new: true });
+        return { data: updatedMerchant?.toObject() };
       }
       return { error: 'Could not find merchant to update' };
     } catch (err) {
@@ -63,37 +63,13 @@ export class MerchantModel {
   }
 
   /**
-   * Finds the default merchant by domain 'demo.yankey.local'.
-   * If not found, creates a default merchant.
-   */
-  async getDefaultMerchant() {
-    const defaultDomain = 'demo.yankey.local';
-    let merchant = await this.model.findOne({ domain: defaultDomain }).lean();
-    if (merchant) {
-      return { data: merchant };
-    }
-    // Create default merchant if not exists
-    const defaultData = {
-      name: 'Demo Merchant',
-      domain: defaultDomain,
-      loyaltyPercentage: 2.5
-    };
-    const created = await this.model.create(defaultData);
-    if (created) {
-      merchant = await this.model.findById(created._id).lean();
-      return { data: merchant };
-    }
-    return { error: 'Could not create default merchant' };
-  }
-
-  /**
    * Finds a merchant by ID.
    */
   async getMerchantById(id: string) {
     try {
-      const merchant = await this.model.findById(id).lean();
+      const merchant = await this.model.findById(id);
       if (merchant) {
-        return { data: merchant };
+        return { data: merchant.toObject() };
       }
       return { error: 'Merchant not found' };
     } catch (err) {
@@ -107,9 +83,9 @@ export class MerchantModel {
    */
   async updateMerchantById(id: string, data: Partial<IMerchant>) {
     try {
-      const updated = await this.model.findByIdAndUpdate(id, data, { new: true }).lean();
+      const updated = await this.model.findByIdAndUpdate(id, data, { new: true });
       if (updated) {
-        return { data: updated };
+        return { data: updated.toObject() };
       }
       return { error: 'Merchant not found' };
     } catch (err) {

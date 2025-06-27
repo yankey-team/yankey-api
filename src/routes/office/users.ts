@@ -20,18 +20,23 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
         200: {
           type: 'object',
           properties: {
-            total: { type: 'integer' },
-            limit: { type: 'integer' },
-            page: { type: 'integer' },
-            users: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  id: { type: 'string' },
-                  displayName: { type: 'string' },
-                  phoneNumber: { type: 'string' },
-                  balance: { type: 'number' }
+            data: {
+              type: 'object',
+              properties: {
+                total: { type: 'integer' },
+                limit: { type: 'integer' },
+                page: { type: 'integer' },
+                users: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      displayName: { type: 'string' },
+                      phoneNumber: { type: 'string' },
+                      balance: { type: 'number' }
+                    }
+                  }
                 }
               }
             }
@@ -48,17 +53,19 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
       const safeUsers = users || [];
       const start = (page - 1) * limit;
       const pagedUsers = safeUsers.slice(start, start + limit);
-      const balances = await Promise.all(pagedUsers.map(u => userModel.balance(u._id?.toString() || u.id)));
+      const balances = await Promise.all(pagedUsers.map(u => userModel.balance(u.id)));
       return {
-        total: safeUsers.length,
-        limit,
-        page,
-        users: pagedUsers.map((u, i) => ({
-          id: u._id?.toString() || u.id,
-          displayName: u.displayName,
-          phoneNumber: u.phoneNumber,
-          balance: balances[i]
-        }))
+        data: {
+          total: safeUsers.length,
+          limit,
+          page,
+          users: pagedUsers.map((u, i) => ({
+            id: u.id,
+            displayName: u.displayName,
+            phoneNumber: u.phoneNumber,
+            balance: balances[i].data
+          }))
+        }
       };
     }
   });
@@ -87,7 +94,7 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
         reply.code(404).send({ error: error || 'User not found' });
         return;
       }
-      return userWithPurchases;
+      return { data: userWithPurchases };
     }
   });
 
@@ -116,11 +123,9 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
         return;
       }
       await transactionModel.deleteUserTransactions(id);
-      return { success: true };
+      return { data: { success: true } };
     }
   });
 };
-
-// Note: For true DB-level pagination, update UserModel.findAllUsers to accept limit/page and return total.
 
 export default officeUsers;

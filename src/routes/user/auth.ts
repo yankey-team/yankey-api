@@ -6,7 +6,7 @@ const userAuthRoutes: FastifyPluginAsync = async (fastify): Promise<void> => {
   // User login
   fastify.post<{ Body: UserAuthPayload }>('/auth/login', {
     schema: {
-      description: 'Authenticate user using display name and phone number',
+      description: 'Authenticate user using display name, phone number, and optional birthday',
       tags: ['user'],
       body: {
         type: 'object',
@@ -19,6 +19,11 @@ const userAuthRoutes: FastifyPluginAsync = async (fastify): Promise<void> => {
           phoneNumber: { 
             type: 'string',
             description: 'User phone number'
+          },
+          birthday: {
+            type: 'string',
+            format: 'date',
+            description: 'User birthday (optional, ISO date string)'
           }
         }
       },
@@ -26,16 +31,22 @@ const userAuthRoutes: FastifyPluginAsync = async (fastify): Promise<void> => {
         200: {
           type: 'object',
           properties: {
-            token: { type: 'string' }
+            data: {
+              type: 'object',
+              properties: {
+                token: { type: 'string' }
+              }
+            }
           }
         }
       }
     },
     handler: async (request, reply) => {
-      const { displayName, phoneNumber } = request.body;
+      const { displayName, phoneNumber, birthday } = request.body;
+      console.log("Running the auth:", request.merchant);
       const userModel = new UserModel(request.merchant.id);
       // Only create user, no telegram logic
-      const { data: createdUser } = await userModel.createUser({ displayName, phoneNumber });
+      const { data: createdUser } = await userModel.createUser({ displayName, phoneNumber, birthday });
       if (!createdUser) {
         return reply.code(400).send({ error: 'User could not be created' });
       }
@@ -44,7 +55,7 @@ const userAuthRoutes: FastifyPluginAsync = async (fastify): Promise<void> => {
         type: 'user',
         merchantId: request.merchant.id
       });
-      return { token };
+      return { data: { token } };
     }
   });
 };

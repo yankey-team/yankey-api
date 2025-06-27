@@ -13,9 +13,14 @@ const officeSettings: FastifyPluginAsync = async (fastify): Promise<void> => {
         200: {
           type: 'object',
           properties: {
-            name: { type: 'string' },
-            domain: { type: 'string' },
-            loyaltyPercentage: { type: 'number' }
+            data: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                domain: { type: 'string' },
+                loyaltyPercentage: { type: 'number' }
+              }
+            }
           }
         }
       }
@@ -29,9 +34,11 @@ const officeSettings: FastifyPluginAsync = async (fastify): Promise<void> => {
         return;
       }
       return {
-        name: merchant.name,
-        domain: merchant.domain,
-        loyaltyPercentage: merchant.loyaltyPercentage
+        data: {
+          name: merchant.name,
+          domain: merchant.domain,
+          loyaltyPercentage: merchant.loyaltyPercentage
+        }
       };
     }
   });
@@ -45,8 +52,13 @@ const officeSettings: FastifyPluginAsync = async (fastify): Promise<void> => {
       body: {
         type: 'object',
         properties: {
-          name: { type: 'string' },
-          loyaltyPercentage: { type: 'number' }
+          data: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              loyaltyPercentage: { type: 'number' }
+            }
+          }
         }
       }
     },
@@ -63,9 +75,11 @@ const officeSettings: FastifyPluginAsync = async (fastify): Promise<void> => {
         return;
       }
       return {
-        name: merchant.name,
-        domain: merchant.domain,
-        loyaltyPercentage: merchant.loyaltyPercentage
+        data: {
+          name: merchant.name,
+          domain: merchant.domain,
+          loyaltyPercentage: merchant.loyaltyPercentage
+        }
       };
     }
   });

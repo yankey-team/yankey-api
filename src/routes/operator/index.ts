@@ -24,11 +24,11 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
         type: 'object',
         required: ['last4'],
         properties: {
-          last4: { 
-            type: 'string', 
+          last4: {
+            type: 'string',
             description: 'Last 4 digits of phone number',
-            minLength: 4, 
-            maxLength: 4 
+            minLength: 4,
+            maxLength: 4
           }
         }
       },
@@ -36,15 +36,20 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
         200: {
           type: 'object',
           properties: {
-            users: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  id: { type: 'string' },
-                  displayName: { type: 'string' },
-                  phoneNumber: { type: 'string' },
-                  balance: { type: 'number' }
+            data: {
+              type: 'object',
+              properties: {
+                users: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      displayName: { type: 'string' },
+                      phoneNumber: { type: 'string' },
+                      balance: { type: 'number' }
+                    }
+                  }
                 }
               }
             }
@@ -60,12 +65,14 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
       if (error) throw new Error(error);
       const safeUsers = users || [];
       return {
-        users: safeUsers.map(u => ({
-          id: u._id?.toString(),
-          displayName: u.displayName,
-          phoneNumber: u.phoneNumber,
-          balance: 0
-        }))
+        data: {
+          users: safeUsers.map(u => ({
+            id: u._id?.toString(),
+            displayName: u.displayName,
+            phoneNumber: u.phoneNumber,
+            balance: 0
+          }))
+        }
       };
     }
   });
@@ -87,18 +94,23 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
         200: {
           type: 'object',
           properties: {
-            purchase: {
+            data: {
               type: 'object',
               properties: {
-                id: { type: 'string' },
-                amount: { type: 'number' },
-                userId: { type: 'string' },
-                operatorId: { type: 'string' },
-                createdAt: { type: 'string', format: 'date-time' }
+                purchase: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    amount: { type: 'number' },
+                    userId: { type: 'string' },
+                    operatorId: { type: 'string' },
+                    createdAt: { type: 'string', format: 'date-time' }
+                  }
+                },
+                cashback: { type: 'number' },
+                newBalance: { type: 'number' }
               }
-            },
-            cashback: { type: 'number' },
-            newBalance: { type: 'number' }
+            }
           }
         }
       }
@@ -132,15 +144,17 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
       // Optionally, update balance in user document if you store it
       const { data: balance } = await userModel.balance(userId);
       return {
-        purchase: {
-          id: (purchase as any)._id?.toString(),
-          amount: purchase.amount,
-          userId: purchase.userId,
-          operatorId: purchase.operatorId,
-          createdAt: (purchase as any).createdAt
-        },
-        cashback,
-        newBalance: balance || 0
+        data: {
+          purchase: {
+            id: (purchase as any)._id?.toString(),
+            amount: purchase.amount,
+            userId: purchase.userId,
+            operatorId: purchase.operatorId,
+            createdAt: (purchase as any).createdAt
+          },
+          cashback,
+          newBalance: balance || 0
+        }
       };
     }
   });

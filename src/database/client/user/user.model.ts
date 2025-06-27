@@ -21,10 +21,8 @@ export class UserModel {
    */
   async findUserById(id: ID): Promise<{ data?: IUser; error?: string }> {
     try {
-      const user = await this.model.findById(id).lean();
-      if (user) {
-        return { data: user };
-      }
+      const user = await this.model.findById(id);
+      if (user) return { data: user.toObject() };
       return { error: "User not found" };
     } catch (err) {
       console.error('findUserById error:', err);
@@ -40,7 +38,7 @@ export class UserModel {
   async balance(id: ID): Promise<{ data?: number; error?: string }> {
     const transactionModel = new TransactionModel(this.merchantId);
     try {
-      const user = await this.model.findById(id).lean();
+      const user = await this.model.findById(id);
       if (!user) {
         return { error: "User not found" };
       }
@@ -69,8 +67,9 @@ export class UserModel {
    */
   async createUser(userData: Partial<IUser>): Promise<{ data?: IUser; error?: string }> {
     try {
-      const user = await this.model.create(userData);
-      return { data: user.toObject() };
+      const createdUser = await this.model.create(userData);
+      if (createdUser) return { data: createdUser.toObject() };
+      return { error: "User could not be created" };
     } catch (err) {
       console.error('createUser error:', err);
       return { error: "Database error while creating user" };
@@ -82,8 +81,8 @@ export class UserModel {
    */
   async findAllUsers() {
     try {
-      const users = await this.model.find({}).lean();
-      return { data: users };
+      const users = await this.model.find({});
+      return { data: users.map((user) => user.toObject()) };
     } catch (err) {
       console.error('findAllUsers error:', err);
       return { error: 'Database error while finding users' };
@@ -95,10 +94,10 @@ export class UserModel {
    */
   async getUserWithTransactions(userId: ID, transactionModel: any) {
     try {
-      const user = await this.model.findById(userId).lean();
+      const user = await this.model.findById(userId);
       if (!user) return { error: 'User not found' };
       const { data: purchases } = await transactionModel.findUserTransactions(userId);
-      return { data: { ...user, purchases: purchases || [] } };
+      return { data: { ...user.toObject(), purchases: purchases || [] } };
     } catch (err) {
       console.error('getUserWithTransactions error:', err);
       return { error: 'Database error while getting user with transactions' };
@@ -110,8 +109,12 @@ export class UserModel {
    */
   async deleteUser(userId: ID) {
     try {
-      const deleted = await this.model.findByIdAndDelete(userId);
-      return { data: !!deleted };
+      const deletedUser = await this.model.findByIdAndDelete(userId);
+      if (deletedUser) {
+        return { data: deletedUser.toObject() };
+      } else {
+        return { error: 'User not found' };
+      }
     } catch (err) {
       console.error('deleteUser error:', err);
       return { error: 'Database error while deleting user' };
@@ -121,16 +124,15 @@ export class UserModel {
   /**
    * Finds users by merchantId and last 4 digits of phone number.
    */
-  async searchByLast4(merchantId: string, last4: string) {
+  async searchByLast4(merchantId: ID, last4: string) {
     try {
       const users = await this.model.find({
-        merchantId,
-        phoneNumber: { $regex: `${last4}$` }
-      }).lean();
-      return { data: users };
+        phoneNumber: { $regex: last4 + '$' }
+      });
+      return { data: users.map(user => user.toObject()) };
     } catch (err) {
       console.error('searchByLast4 error:', err);
-      return { error: 'Database error while searching users' };
+      return { error: 'Database error while searching users by last 4 digits' };
     }
   }
 }

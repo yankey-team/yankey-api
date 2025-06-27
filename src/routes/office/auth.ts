@@ -11,10 +11,9 @@ const officeAuth: FastifyPluginAsync = async (fastify): Promise<void> => {
       tags: ['office'],
       body: {
         type: 'object',
-        required: ['name', 'domain', 'loyaltyPercentage', 'admin'],
+        required: ['name', 'loyaltyPercentage', 'admin'],
         properties: {
           name: { type: 'string' },
-          domain: { type: 'string' },
           loyaltyPercentage: { type: 'number' },
           admin: {
             type: 'object',
@@ -29,9 +28,17 @@ const officeAuth: FastifyPluginAsync = async (fastify): Promise<void> => {
       }
     },
     handler: async (request, reply) => {
-      const { name, domain, loyaltyPercentage, admin } = request.body;
+      const { name, loyaltyPercentage, admin } = request.body;
       const merchantModel = new MerchantModel();
-      const operatorModel = new OperatorModel('');
+
+
+      const host = request.headers.host?.toLowerCase();
+      if (!host) {
+        return { error: "Host header is required" }
+      }
+
+      // I am getting host like demo.yankey.local:3000, but It should be without port.
+      const domain = host.includes(':') ? host.split(':')[0] : host;
 
       // Check if domain exists
       const { data: existingMerchant } = await merchantModel.getMerchantByDomain(domain);
@@ -39,6 +46,7 @@ const officeAuth: FastifyPluginAsync = async (fastify): Promise<void> => {
         reply.code(400).send({ error: 'Domain already exists' });
         return;
       }
+
 
       // Create merchant
       const merchantResult = await merchantModel.createMerchant({
@@ -51,13 +59,14 @@ const officeAuth: FastifyPluginAsync = async (fastify): Promise<void> => {
         return;
       }
       const merchant = merchantResult.data;
-      const merchantId = merchant._id?.toString();
+
+      const operatorModel = new OperatorModel(merchant.id);
 
       // Create admin operator
       const operatorResult = await operatorModel.createOperator({
         username: admin.username,
         password: bcryptjs.hashSync(admin.password, 10),
-        displayName: admin.displayName,
+        displayName: merchant.domain,
       });
       if (operatorResult.error || !operatorResult.data) {
         reply.code(500).send({ error: operatorResult.error || 'Could not create admin operator' });
@@ -68,10 +77,10 @@ const officeAuth: FastifyPluginAsync = async (fastify): Promise<void> => {
       const token = await reply.jwtSign({
         id: operator._id?.toString(),
         type: 'operator',
-        merchantId: merchantId
+        merchantId: merchant.id
       });
 
-      return { token, merchant };
+      return { data: { token, merchant } };
     }
   });
 
@@ -81,25 +90,32 @@ const officeAuth: FastifyPluginAsync = async (fastify): Promise<void> => {
       tags: ['office'],
       body: {
         type: 'object',
-        required: ['username', 'password', 'domain'],
+        required: ['username', 'password'],
         properties: {
           username: { type: 'string' },
           password: { type: 'string' },
-          domain: { type: 'string' }
         }
       }
     },
     handler: async (request, reply) => {
-      const { username, password, domain } = request.body;
+      const { username, password } = request.body;
       const merchantModel = new MerchantModel();
-      const operatorModel = new OperatorModel('');
+
+      const host = request.headers.host?.toLowerCase();
+      if (!host) {
+        return { error: "Host header is required" }
+      }
+
+      // I am getting host like demo.yankey.local:3000, but It should be without port.
+      const domain = host.includes(':') ? host.split(':')[0] : host;
 
       const { data: merchant } = await merchantModel.getMerchantByDomain(domain);
       if (!merchant) {
         reply.code(404).send({ error: 'Merchant not found' });
         return;
       }
-      const merchantId = merchant._id?.toString();
+      console.log("merchant:", merchant);
+      const operatorModel = new OperatorModel(merchant.id);
 
       const { data: operator } = await operatorModel.findByUsername(username);
       if (!operator) {
@@ -114,10 +130,10 @@ const officeAuth: FastifyPluginAsync = async (fastify): Promise<void> => {
       const token = await reply.jwtSign({
         id: operator._id?.toString(),
         type: 'operator',
-        merchantId: merchantId
+        merchantId: merchant.id
       });
 
-      return { token, merchant };
+      return { data: { token, merchant } };
     }
   });
 };

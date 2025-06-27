@@ -10,12 +10,6 @@ export default fp(async (fastify) => {
         description: "API documentation for Yankey loyalty cashback platform.\n\nAuthentication:\n- User endpoints require JWT Bearer token.\n- Operator endpoints require JWT Bearer token.\n\nAll endpoints are grouped by user type.",
         version: "1.0.0"
       },
-      servers: [
-        {
-          url: "http://demo.yankey.local",
-          description: "Demo merchant"
-        }
-      ],
       tags: [
         { name: "user", description: "User endpoints" },
         { name: "operator", description: "Operator endpoints" },
@@ -31,7 +25,6 @@ export default fp(async (fastify) => {
           }
         }
       },
-      security: [{ bearerAuth: [] }]
     }
   });
 

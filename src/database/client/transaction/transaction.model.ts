@@ -19,8 +19,8 @@ export class TransactionModel {
    */
   async findOperatorTransactions(operatorId: ID): Promise<{ data?: ITransaction[]; error?: string }> {
     try {
-      const transactions = await this.model.find({ operatorId: operatorId }).lean();
-      return { data: transactions };
+      const transactions = await this.model.find({ operatorId: operatorId });
+      return { data: transactions.map(item => item.toObject()) };
     } catch (err) {
       console.error('findOperatorTransactions error:', err);
       return { error: "Database error while finding operator transactions" };
@@ -34,8 +34,8 @@ export class TransactionModel {
    */
   async findUserTransactions(userId: ID): Promise<{ data?: ITransaction[]; error?: string }> {
     try {
-      const transactions = await this.model.find({ userId: userId }).lean();
-      return { data: transactions };
+      const transactions = await this.model.find({ userId: userId });
+      return { data: transactions.map(item => item.toObject()) };
     } catch (err) {
       console.error('findUserTransactions error:', err);
       return { error: "Database error while finding user transactions" };

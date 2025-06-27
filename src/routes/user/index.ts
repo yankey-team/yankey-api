@@ -4,7 +4,7 @@ import userAuthRoutes from './auth';
 
 const user: FastifyPluginAsync = async (fastify): Promise<void> => {
   fastify.register(userAuthRoutes);
-  
+
   fastify.get('/user/balance', {
     schema: {
       description: 'Get user balance and merchant information',
@@ -14,12 +14,17 @@ const user: FastifyPluginAsync = async (fastify): Promise<void> => {
         200: {
           type: 'object',
           properties: {
-            balance: { type: 'number' },
-            merchant: {
+            data: {
               type: 'object',
               properties: {
-                name: { type: 'string' },
-                loyaltyPercentage: { type: 'number' }
+                balance: { type: 'number' },
+                merchant: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    loyaltyPercentage: { type: 'number' }
+                  }
+                }
               }
             }
           }
@@ -35,10 +40,12 @@ const user: FastifyPluginAsync = async (fastify): Promise<void> => {
       }
       const { data: balance } = await userModel.balance(user.id.toString());
       return {
-        balance: balance || 0,
-        merchant: {
-          name: request.merchant.name,
-          loyaltyPercentage: request.merchant.loyaltyPercentage
+        data: {
+          balance: balance || 0,
+          merchant: {
+            name: request.merchant.name,
+            loyaltyPercentage: request.merchant.loyaltyPercentage
+          }
         }
       };
     }

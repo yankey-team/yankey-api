@@ -2,6 +2,7 @@
 export interface UserAuthPayload {
   displayName: string;
   phoneNumber: string;
+  birthday?: string;
 }
 
 export interface OperatorAuthPayload {
@@ -18,7 +19,6 @@ export interface JWTPayload {
 // Office Payloads
 export interface OfficeSignUpPayload {
   name: string;
-  domain: string;
   loyaltyPercentage: number;
   admin: {
     username: string;
@@ -30,7 +30,6 @@ export interface OfficeSignUpPayload {
 export interface OfficeSignInPayload {
   username: string;
   password: string;
-  domain: string;
 }
 
 export interface OperatorCreatePayload {
@@ -47,11 +46,13 @@ export interface OperatorUpdatePayload {
 export interface UserCreatePayload {
   displayName: string;
   phoneNumber: string;
+  birthday?: string;
 }
 
 export interface UserUpdatePayload {
   displayName?: string;
   phoneNumber?: string;
+  birthday?: string;
 }
 
 export interface MerchantUpdatePayload {
