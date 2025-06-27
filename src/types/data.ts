@@ -14,6 +14,7 @@ export interface JWTPayload {
   id: string;
   type: 'user' | 'operator';
   merchantId: string;
+  role?: 'owner' | 'operator';
 }
 
 // Office Payloads

@@ -3,6 +3,13 @@ import { UserModel } from '../../database/client/user/user.model';
 import { TransactionModel } from '../../database/client/transaction/transaction.model';
 
 const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
+  // All office user APIs require 'owner' role
+  const requireOwnerRole = async (request: any, reply: any) => {
+    if (request.user?.type !== 'operator' || request.user?.role !== 'owner') {
+      return reply.code(403).send({ error: 'Forbidden: Only owner can access office APIs' });
+    }
+  };
+
   // List users
   fastify.get('/users', {
     schema: {
@@ -44,7 +51,7 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
         }
       }
     },
-    onRequest: [fastify.authenticate('operator')],
+    onRequest: [fastify.authenticate('operator'), requireOwnerRole],
     handler: async (request) => {
       const { limit = 20, page = 1 } = request.query as any;
       const userModel = new UserModel(request.user.merchantId);
@@ -84,7 +91,7 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
         }
       }
     },
-    onRequest: [fastify.authenticate('operator')],
+    onRequest: [fastify.authenticate('operator'), requireOwnerRole],
     handler: async (request, reply) => {
       const { id } = request.params;
       const userModel = new UserModel(request.user.merchantId);
@@ -112,7 +119,7 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
         }
       }
     },
-    onRequest: [fastify.authenticate('operator')],
+    onRequest: [fastify.authenticate('operator'), requireOwnerRole],
     handler: async (request, reply) => {
       const { id } = request.params;
       const userModel = new UserModel(request.user.merchantId);

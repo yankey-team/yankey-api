@@ -53,13 +53,16 @@ const operatorAuthRoutes = async (fastify: FastifyInstance) => {
             return reply.code(401).send({ error: 'Invalid credentials' });
           }
 
+          if (operator.role !== 'operator') {
+            return reply.code(403).send({ error: 'Forbidden: Only operator can access operator APIs' });
+          }
           const token = await reply.jwtSign({
-            id: operator._id.toString(),
+            id: operator.id,
             type: 'operator',
             merchantId: request.merchant.id,
+            role: operator.role
           });
-
-          return reply.send({ data: { token } });
+          return reply.send({ data: { token, role: operator.role } });
         } catch (err) {
           request.log.error(err, 'Operator login failed');
           return reply.code(500).send({ error: 'Internal server error' });

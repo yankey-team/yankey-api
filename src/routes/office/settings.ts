@@ -25,7 +25,11 @@ const officeSettings: FastifyPluginAsync = async (fastify): Promise<void> => {
         }
       }
     },
-    onRequest: [fastify.authenticate('operator')],
+    onRequest: [fastify.authenticate('operator'), async (request, reply) => {
+      if (request.user.role !== 'owner') {
+        return reply.code(403).send({ error: 'Forbidden: Only owner can access office settings' });
+      }
+    }],
     handler: async (request, reply) => {
       const merchantModel = new MerchantModel();
       const { data: merchant, error } = await merchantModel.getMerchantById(request.user.merchantId);
@@ -62,7 +66,11 @@ const officeSettings: FastifyPluginAsync = async (fastify): Promise<void> => {
         }
       }
     },
-    onRequest: [fastify.authenticate('operator')],
+    onRequest: [fastify.authenticate('operator'), async (request, reply) => {
+      if (request.user.role !== 'owner') {
+        return reply.code(403).send({ error: 'Forbidden: Only owner can update office settings' });
+      }
+    }],
     handler: async (request, reply) => {
       const { name, loyaltyPercentage } = request.body;
       const merchantModel = new MerchantModel();

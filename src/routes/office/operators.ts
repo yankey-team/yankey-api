@@ -34,7 +34,8 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
                     properties: {
                       id: { type: 'string' },
                       username: { type: 'string' },
-                      displayName: { type: 'string' }
+                      displayName: { type: 'string' },
+                      role: { type: 'string' }
                     }
                   }
                 }
@@ -44,7 +45,11 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
         }
       }
     },
-    onRequest: [fastify.authenticate('operator')],
+    onRequest: [fastify.authenticate('operator'), async (request, reply) => {
+      if (request.user.role !== 'owner') {
+        return reply.code(403).send({ error: 'Forbidden: Only owner can access office APIs' });
+      }
+    }],
     handler: async (request) => {
       const { limit = 20, page = 1 } = request.query as any;
       const operatorModel = new OperatorModel(request.user.merchantId);
@@ -61,7 +66,8 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
           operators: pagedOperators.map(e => ({
             id: e._id?.toString(),
             username: e.username,
-            displayName: e.displayName
+            displayName: e.displayName,
+            role: e.role
           }))
         }
       };
@@ -84,7 +90,11 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
         }
       }
     },
-    onRequest: [fastify.authenticate('operator')],
+    onRequest: [fastify.authenticate('operator'), async (request, reply) => {
+      if (request.user.role !== 'owner') {
+        return reply.code(403).send({ error: 'Forbidden: Only owner can create operators' });
+      }
+    }],
     handler: async (request, reply) => {
       const { username, password, displayName } = request.body;
       const operatorModel = new OperatorModel(request.user.merchantId);
@@ -98,6 +108,7 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
         username,
         password: bcryptjs.hashSync(password, 10),
         displayName,
+        role: 'operator',
       });
       if (operatorResult.error || !operatorResult.data) {
         reply.code(500).send({ error: operatorResult.error || 'Could not create operator' });
@@ -108,7 +119,8 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
         data: {
           id: operatorResult.data._id?.toString(),
           username: operatorData.username,
-          displayName: operatorData.displayName
+          displayName: operatorData.displayName,
+          role: operatorData.role
         }
       };
     }
@@ -135,7 +147,11 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
         }
       }
     },
-    onRequest: [fastify.authenticate('operator')],
+    onRequest: [fastify.authenticate('operator'), async (request, reply) => {
+      if (request.user.role !== 'owner') {
+        return reply.code(403).send({ error: 'Forbidden: Only owner can update operators' });
+      }
+    }],
     handler: async (request, reply) => {
       const { id } = request.params;
       const { displayName, password } = request.body;
@@ -153,7 +169,8 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
         data: {
           id: updated._id?.toString(),
           username: operatorData.username,
-          displayName: operatorData.displayName
+          displayName: operatorData.displayName,
+          role: operatorData.role
         }
       };
     }
@@ -173,7 +190,11 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
         }
       }
     },
-    onRequest: [fastify.authenticate('operator')],
+    onRequest: [fastify.authenticate('operator'), async (request, reply) => {
+      if (request.user.role !== 'owner') {
+        return reply.code(403).send({ error: 'Forbidden: Only owner can delete operators' });
+      }
+    }],
     handler: async (request, reply) => {
       const { id } = request.params;
       if (id === request.user.id) {

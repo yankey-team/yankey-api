@@ -17,6 +17,13 @@ interface PurchaseBody {
 const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
   fastify.register(operatorAuthRoutes);
 
+  // All operator APIs require 'operator' role
+  const requireOperatorRole = async (request: any, reply: any) => {
+    if (request.user?.type !== 'operator' || request.user?.role !== 'operator') {
+      return reply.code(403).send({ error: 'Forbidden: Only operator can access operator APIs' });
+    }
+  };
+
   fastify.get<{ Querystring: SearchQuery }>('/operator/search-users', {
     schema: {
       description: 'Search users by last 4 digits of phone number',
@@ -59,7 +66,7 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
         }
       }
     },
-    onRequest: [fastify.authenticate('operator')],
+    onRequest: [fastify.authenticate('operator'), requireOperatorRole],
     handler: async (request) => {
       const { last4 } = request.query;
       const userModel = new UserModel(request.merchant.id);
@@ -123,7 +130,7 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
         }
       }
     },
-    onRequest: [fastify.authenticate('operator')],
+    onRequest: [fastify.authenticate('operator'), requireOperatorRole],
     handler: async (request, reply) => {
       const { amount, userId, type, checkOutAmount } = request.body;
       const userModel = new UserModel(request.merchant.id);
@@ -163,6 +170,65 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
           },
           cashback,
           newBalance: balance || 0
+        }
+      };
+    }
+  });
+
+  fastify.get('/operator/history', {
+    schema: {
+      description: 'Get transaction history operated by the current operator',
+      tags: ['operator'],
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            data: {
+              type: 'object',
+              properties: {
+                transactions: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      type: { type: 'string' },
+                      amount: { type: 'number' },
+                      userId: { type: 'string' },
+                      operatorId: { type: 'string' },
+                      loyaltyPercentage: { type: 'number' },
+                      checkOutAmount: { type: 'number' },
+                      createdAt: { type: 'string', format: 'date-time' }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    onRequest: [fastify.authenticate('operator'), requireOperatorRole],
+    handler: async (request, reply) => {
+      const transactionModel = new TransactionModel(request.merchant.id);
+      const { data: transactions, error } = await transactionModel.findOperatorTransactions(request.user.id);
+      if (error) {
+        reply.code(500).send({ error });
+        return;
+      }
+      return {
+        data: {
+          transactions: (transactions || []).map(t => ({
+            id: t.id,
+            type: t.type,
+            amount: t.amount,
+            userId: t.userId,
+            operatorId: t.operatorId,
+            loyaltyPercentage: t.loyaltyPercentage,
+            checkOutAmount: t.checkOutAmount,
+            createdAt: t.createdAt
+          }))
         }
       };
     }

@@ -27,9 +27,9 @@ export class OperatorModel {
    */
   async findByUsername(username: string) {
     try {
-      const operator = await this.model.findOne({ username }).lean();
+      const operator = await this.model.findOne({ username });
       if (operator) {
-        return { data: operator };
+        return { data: operator.toObject() };
       }
       return { error: "Could not find an operator" };
     } catch (err) {

@@ -13,6 +13,7 @@ export interface ITransaction {
   loyaltyPercentage: number;
   userId: ID;
   operatorId: ID;
+  createdAt?: Date; // Add createdAt for timestamps
 }
 
 /**
