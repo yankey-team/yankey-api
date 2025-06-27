@@ -8,7 +8,9 @@ interface SearchQuery {
 }
 
 interface PurchaseBody {
+  type: "check-in" | "check-out";
   amount: number;
+  checkOutAmount?: number;
   userId: string;
 }
 
@@ -84,10 +86,16 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
       security: [{ bearerAuth: [] }],
       body: {
         type: 'object',
-        required: ['amount', 'userId'],
+        required: ['amount', 'userId', 'type'],
         properties: {
           amount: { type: 'number' },
-          userId: { type: 'string' }
+          userId: { type: 'string' },
+          type: { 
+            type: 'string', 
+            description: 'Transaction type', 
+            enum: ['check-in', 'check-out'] 
+          },
+          checkOutAmount: { type: 'number', description: 'Check out amount' }
         }
       },
       response: {
@@ -117,7 +125,7 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
     },
     onRequest: [fastify.authenticate('operator')],
     handler: async (request, reply) => {
-      const { amount, userId } = request.body;
+      const { amount, userId, type, checkOutAmount } = request.body;
       const userModel = new UserModel(request.merchant.id);
       const transactionModel = new TransactionModel(request.merchant.id);
       // Find user
@@ -128,11 +136,12 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
       }
       // Create transaction (purchase)
       const transactionData = {
-        type: "check-in" as const,
+        type: type,
         amount,
         userId: userId,
         operatorId: request.user.id,
-        loyaltyPercentage: request.merchant.loyaltyPercentage
+        loyaltyPercentage: request.merchant.loyaltyPercentage,
+        checkOutAmount
       };
       const { data: purchase, error: transactionError } = await transactionModel.createTransaction(transactionData);
       if (transactionError || !purchase) {
