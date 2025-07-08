@@ -204,4 +204,21 @@ export class OperatorModel {
       return { error: 'Database error while deleting operator' };
     }
   }
+
+  /**
+   * Finds all transactions operated by a specific operator.
+   */
+  async history(operatorId: ID) {
+    try {
+      const transactionModel = new TransactionModel(this.merchantId);
+      const { data: transactions, error } = await transactionModel.findOperatorTransactions(operatorId);
+      if (error) {
+        return { error };
+      }
+      return { data: transactions };
+    } catch (err) {
+      console.error('history error:', err);
+      return { error: 'Database error while fetching operator transaction history' };
+    }
+  }
 }

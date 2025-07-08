@@ -10,15 +10,20 @@ export interface IOperator {
   username: string;
   password: string;
   displayName: string;
-  role: 'owner' | 'operator';
+  role: "owner" | "operator";
 }
 
 /**
  * OperatorSchema defines the structure of the Operator collection in MongoDB.
  */
-export const OperatorSchema = modifySchema(new Schema<IOperator>({
-  username: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  displayName: { type: String, required: true },
-  role: { type: String, enum: ['owner', 'operator'], required: true },
-}, { timestamps: true }));
+export const OperatorSchema = modifySchema(
+  new Schema<IOperator>(
+    {
+      username: { type: String, required: true, unique: true },
+      password: { type: String, required: true },
+      displayName: { type: String, required: true },
+      role: { type: String, enum: ["owner", "operator"], required: true },
+    },
+    { timestamps: true }
+  )
+);

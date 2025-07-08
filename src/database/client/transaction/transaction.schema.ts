@@ -7,7 +7,7 @@ import { modifySchema } from "../../utils";
  */
 export interface ITransaction {
   id: ID;
-  type: 'check-in' | 'check-out';
+  type: "check-in" | "check-out";
   amount: number;
   checkOutAmount?: number;
   loyaltyPercentage: number;
@@ -19,11 +19,16 @@ export interface ITransaction {
 /**
  * TransactionSchema defines the structure of the Transaction collection in MongoDB.
  */
-export const TransactionSchema = modifySchema(new Schema<ITransaction>({
-  type: { type: String, enum: ['check-in', 'check-out'], required: true },
-  amount: { type: Number, required: true },
-  checkOutAmount: { type: Number, default: 0 },
-  loyaltyPercentage: { type: Number, required: true },
-  userId: { type: String, required: true },
-  operatorId: { type: String, required: true },
-}, { timestamps: true }));
+export const TransactionSchema = modifySchema(
+  new Schema<ITransaction>(
+    {
+      type: { type: String, enum: ["check-in", "check-out"], required: true },
+      amount: { type: Number, required: true },
+      checkOutAmount: { type: Number, default: 0 },
+      loyaltyPercentage: { type: Number, required: true },
+      userId: { type: String, required: true },
+      operatorId: { type: String, required: true },
+    },
+    { timestamps: true }
+  )
+);

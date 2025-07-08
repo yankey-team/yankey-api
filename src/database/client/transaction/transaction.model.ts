@@ -9,7 +9,8 @@ import { createMongooseClient } from "../mongoose";
 export class TransactionModel {
   model: Model<ITransaction>;
   constructor(readonly merchantId: ID) {
-    this.model = createMongooseClient(merchantId).model<ITransaction>('Transaction');
+    this.model =
+      createMongooseClient(merchantId).model<ITransaction>("Transaction");
   }
 
   /**
@@ -17,12 +18,14 @@ export class TransactionModel {
    * @param operatorId - The operator's ID
    * @returns An object with either the transactions or an error message
    */
-  async findOperatorTransactions(operatorId: ID): Promise<{ data?: ITransaction[]; error?: string }> {
+  async findOperatorTransactions(
+    operatorId: ID
+  ): Promise<{ data?: ITransaction[]; error?: string }> {
     try {
       const transactions = await this.model.find({ operatorId: operatorId });
-      return { data: transactions.map(item => item.toObject()) };
+      return { data: transactions.map((item) => item.toObject()) };
     } catch (err) {
-      console.error('findOperatorTransactions error:', err);
+      console.error("findOperatorTransactions error:", err);
       return { error: "Database error while finding operator transactions" };
     }
   }
@@ -32,12 +35,14 @@ export class TransactionModel {
    * @param userId - The user's ID
    * @returns An object with either the transactions or an error message
    */
-  async findUserTransactions(userId: ID): Promise<{ data?: ITransaction[]; error?: string }> {
+  async findUserTransactions(
+    userId: ID
+  ): Promise<{ data?: ITransaction[]; error?: string }> {
     try {
       const transactions = await this.model.find({ userId: userId });
-      return { data: transactions.map(item => item.toObject()) };
+      return { data: transactions.map((item) => item.toObject()) };
     } catch (err) {
-      console.error('findUserTransactions error:', err);
+      console.error("findUserTransactions error:", err);
       return { error: "Database error while finding user transactions" };
     }
   }
@@ -47,12 +52,14 @@ export class TransactionModel {
    * @param transactionData - The transaction data to create
    * @returns An object with either the created transaction or an error message
    */
-  async createTransaction(transactionData: Partial<ITransaction>): Promise<{ data?: ITransaction; error?: string }> {
+  async createTransaction(
+    transactionData: Partial<ITransaction>
+  ): Promise<{ data?: ITransaction; error?: string }> {
     try {
       const transaction = await this.model.create(transactionData);
       return { data: transaction.toObject() };
     } catch (err) {
-      console.error('createTransaction error:', err);
+      console.error("createTransaction error:", err);
       return { error: "Database error while creating transaction" };
     }
   }
@@ -60,13 +67,15 @@ export class TransactionModel {
   /**
    * Deletes all transactions for a specific user.
    */
-  async deleteUserTransactions(userId: ID): Promise<{ data?: boolean; error?: string }> {
+  async deleteUserTransactions(
+    userId: ID
+  ): Promise<{ data?: boolean; error?: string }> {
     try {
       await this.model.deleteMany({ userId });
       return { data: true };
     } catch (err) {
-      console.error('deleteUserTransactions error:', err);
-      return { error: 'Database error while deleting user transactions' };
+      console.error("deleteUserTransactions error:", err);
+      return { error: "Database error while deleting user transactions" };
     }
   }
 }
