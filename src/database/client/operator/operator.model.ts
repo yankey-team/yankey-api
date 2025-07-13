@@ -1,5 +1,5 @@
 import { Model } from "mongoose";
-import { ID } from "../../../types";
+import { ID, Pagination } from "../../../types";
 import { IOperator } from "./operator.schema";
 import { createMongooseClient } from "../mongoose";
 import { ITransaction } from "../transaction/transaction.schema";
@@ -33,7 +33,7 @@ export class OperatorModel {
       }
       return { error: "Could not find an operator" };
     } catch (err) {
-      console.error('findByUsername error:', err);
+      console.error("findByUsername error:", err);
       return { error: "Database error while finding operator by username" };
     }
   }
@@ -49,7 +49,7 @@ export class OperatorModel {
       }
       return { error: "Could not find an operator" };
     } catch (err) {
-      console.error('findOperatorById error:', err);
+      console.error("findOperatorById error:", err);
       return { error: "Database error while finding operator by ID" };
     }
   }
@@ -65,7 +65,7 @@ export class OperatorModel {
       }
       return { error: "Could not create an operator" };
     } catch (err) {
-      console.error('createOperator error:', err);
+      console.error("createOperator error:", err);
       return { error: "Database error while creating operator" };
     }
   }
@@ -77,12 +77,14 @@ export class OperatorModel {
     try {
       const operator = await this.model.findById(id).lean();
       if (operator) {
-        const updatedOperator = await this.model.findByIdAndUpdate(operator._id, data, { new: true }).lean();
+        const updatedOperator = await this.model
+          .findByIdAndUpdate(operator._id, data, { new: true })
+          .lean();
         return { data: updatedOperator };
       }
       return { error: "Could not find an operator to update" };
     } catch (err) {
-      console.error('updateOperator error:', err);
+      console.error("updateOperator error:", err);
       return { error: "Database error while updating operator" };
     }
   }
@@ -104,7 +106,7 @@ export class OperatorModel {
         return { error: "Could not find an operator to remove" };
       }
     } catch (err) {
-      console.error('removeOperator error:', err);
+      console.error("removeOperator error:", err);
       return { error: "Database error while removing operator" };
     }
   }
@@ -113,7 +115,8 @@ export class OperatorModel {
    * Creates a transaction for a user by an operator.
    */
   async createTransaction(data: TransactionPayload) {
-    const merchantModel = createMongooseAdminClient().model<IMerchant>("Merchant");
+    const merchantModel =
+      createMongooseAdminClient().model<IMerchant>("Merchant");
     const userModel = new UserModel(this.merchantId);
     const transactionModel = new TransactionModel(this.merchantId);
 
@@ -127,7 +130,9 @@ export class OperatorModel {
         return { error: "Could not find a merchant" };
       }
 
-      const { data: user, error: findUserError } = await userModel.findUserById(data.userId);
+      const { data: user, error: findUserError } = await userModel.findUserById(
+        data.userId
+      );
       if (findUserError) {
         return { error: findUserError };
       }
@@ -139,11 +144,12 @@ export class OperatorModel {
       if (!userIdForBalance) {
         return { error: "User ID not found for balance calculation" };
       }
-      const { data: balance, error: balanceCalculationError } = await userModel.balance(userIdForBalance.toString());
+      const { data: balance, error: balanceCalculationError } =
+        await userModel.balance(userIdForBalance.toString());
       if (balanceCalculationError) {
         return { error: balanceCalculationError };
       }
-      if (typeof balance !== 'number') {
+      if (typeof balance !== "number") {
         return { error: "Could not calculate user balance" };
       }
 
@@ -164,7 +170,8 @@ export class OperatorModel {
         operatorId: data.operatorId,
         loyaltyPercentage: merchant.loyaltyPercentage,
       };
-      const { data: createdTransaction, error: transactionError } = await transactionModel.createTransaction(transaction);
+      const { data: createdTransaction, error: transactionError } =
+        await transactionModel.createTransaction(transaction);
       if (transactionError) {
         return { error: transactionError };
       }
@@ -174,7 +181,7 @@ export class OperatorModel {
         return { error: "Could not create transaction" };
       }
     } catch (err) {
-      console.error('createTransaction error:', err);
+      console.error("createTransaction error:", err);
       return { error: "Database error while creating transaction" };
     }
   }
@@ -187,8 +194,8 @@ export class OperatorModel {
       const operators = await this.model.find({}).lean();
       return { data: operators };
     } catch (err) {
-      console.error('findAllByMerchant error:', err);
-      return { error: 'Database error while finding operators by merchant' };
+      console.error("findAllByMerchant error:", err);
+      return { error: "Database error while finding operators by merchant" };
     }
   }
 
@@ -197,28 +204,40 @@ export class OperatorModel {
    */
   async deleteOperator(id: string, merchantId: string) {
     try {
-      const deleted = await this.model.findOneAndDelete({ _id: id, merchantId });
+      const deleted = await this.model.findOneAndDelete({
+        _id: id,
+        merchantId,
+      });
       return { data: !!deleted };
     } catch (err) {
-      console.error('deleteOperator error:', err);
-      return { error: 'Database error while deleting operator' };
+      console.error("deleteOperator error:", err);
+      return { error: "Database error while deleting operator" };
     }
   }
 
   /**
    * Finds all transactions operated by a specific operator.
    */
-  async history(operatorId: ID) {
+  async history(operatorId: ID, pagination?: Pagination) {
     try {
       const transactionModel = new TransactionModel(this.merchantId);
-      const { data: transactions, error } = await transactionModel.findOperatorTransactions(operatorId);
+      const {
+        data: transactions,
+        error,
+        pagination: paginationResult,
+      } = await transactionModel.findOperatorTransactions(
+        operatorId,
+        pagination
+      );
       if (error) {
         return { error };
       }
-      return { data: transactions };
+      return { data: transactions, pagination: paginationResult };
     } catch (err) {
-      console.error('history error:', err);
-      return { error: 'Database error while fetching operator transaction history' };
+      console.error("history error:", err);
+      return {
+        error: "Database error while fetching operator transaction history",
+      };
     }
   }
 }

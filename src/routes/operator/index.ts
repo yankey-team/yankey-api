@@ -4,6 +4,7 @@ import { UserModel } from "../../database/client/user/user.model";
 import { OperatorModel } from "../../database/client/operator/operator.model";
 import operatorAuthRoutes from "./auth";
 import { RecentActivityModel } from "../../database/client/recent-activity/recent-activity.model";
+import { Pagination } from "../../types";
 
 interface SearchQuery {
   last4: string;
@@ -206,11 +207,19 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
     },
   });
 
-  fastify.get("/history", {
+  fastify.get<{ Querystring: Pagination }>("/history", {
     schema: {
       description: "Get transaction history operated by the current operator",
       tags: ["operator"],
       security: [{ bearerAuth: [] }],
+      querystring: {
+        type: "object",
+        required: ["page", "limit"],
+        properties: {
+          page: { type: "number", minimum: 1, default: 1 },
+          limit: { type: "number", minimum: 1, maximum: 100, default: 10 },
+        },
+      },
       response: {
         200: {
           type: "object",
@@ -234,6 +243,15 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
                     },
                   },
                 },
+                pagination: {
+                  type: "object",
+                  properties: {
+                    page: { type: "number" },
+                    limit: { type: "number" },
+                    total: { type: "number" },
+                    totalPages: { type: "number" },
+                  },
+                },
               },
             },
           },
@@ -243,9 +261,14 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
     onRequest: [fastify.authenticate("operator"), requireOperatorRole],
     handler: async (request, reply) => {
       const operatorModel = new OperatorModel(request.merchant.id);
-      const { data: transactions, error } = await operatorModel.history(
-        request.user.id
-      );
+      const {
+        data: transactions,
+        error,
+        pagination,
+      } = await operatorModel.history(request.user.id, {
+        page: request.query.page,
+        limit: request.query.limit,
+      });
       if (error) {
         reply.code(500).send({ error });
         return;
@@ -262,6 +285,7 @@ const operator: FastifyPluginAsync = async (fastify): Promise<void> => {
             checkOutAmount: t.checkOutAmount,
             createdAt: t.createdAt,
           })),
+          pagination: pagination,
         },
       };
     },
