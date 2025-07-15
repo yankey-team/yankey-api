@@ -1,5 +1,5 @@
 import { Model } from "mongoose";
-import { ID } from "../../../types";
+import { ID, Pagination, PaginationResult } from "../../../types";
 import { createMongooseClient } from "../mongoose";
 import { IUser } from "./user.schema";
 import { TransactionModel } from "../transaction/transaction.model";
@@ -83,10 +83,28 @@ export class UserModel {
   /**
    * Finds all users for a given merchant.
    */
-  async findAllUsers() {
+  async findAllUsers(pagination?: Pagination) {
     try {
-      const users = await this.model.find({});
-      return { data: users.map((user) => user.toObject()) };
+      const page = pagination?.page || 1;
+      const limit = pagination?.limit || 10;
+      const skip = (page - 1) * limit;
+
+      const [users, total] = await Promise.all([
+        this.model.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+        this.model.countDocuments(),
+      ]);
+
+      const paginationResult: PaginationResult = {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      };
+
+      return {
+        data: users.map((user) => user.toObject()),
+        pagination: paginationResult,
+      };
     } catch (err) {
       console.error("findAllUsers error:", err);
       return { error: "Database error while finding users" };

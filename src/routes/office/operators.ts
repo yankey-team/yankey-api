@@ -2,10 +2,11 @@ import { FastifyPluginAsync } from "fastify";
 import bcryptjs from "bcryptjs";
 import { OperatorCreatePayload, OperatorUpdatePayload } from "../../types/data";
 import { OperatorModel } from "../../database/client/operator/operator.model";
+import { Pagination } from "../../types";
 
 const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
   // List operators
-  fastify.get("/operators", {
+  fastify.get<{ Querystring: Pagination }>("/operators", {
     schema: {
       description: "List all operators",
       tags: ["office"],
@@ -24,9 +25,6 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
             data: {
               type: "object",
               properties: {
-                total: { type: "integer" },
-                limit: { type: "integer" },
-                page: { type: "integer" },
                 operators: {
                   type: "array",
                   items: {
@@ -37,6 +35,15 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
                       displayName: { type: "string" },
                       role: { type: "string" },
                     },
+                  },
+                },
+                pagination: {
+                  type: "object",
+                  properties: {
+                    page: { type: "number" },
+                    limit: { type: "number" },
+                    total: { type: "number" },
+                    totalPages: { type: "number" },
                   },
                 },
               },
@@ -56,26 +63,29 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
       },
     ],
     handler: async (request) => {
-      const { limit = 20, page = 1 } = request.query as any;
+      const { limit = 20, page = 1 } = request.query;
       const operatorModel = new OperatorModel(request.user.merchantId);
-      const { data: operators, error } = await operatorModel.findAllByMerchant(
-        request.user.merchantId
-      );
+      const {
+        data: operators,
+        error,
+        pagination,
+      } = await operatorModel.findAllByMerchant(request.user.merchantId, {
+        page,
+        limit,
+      });
       if (error) throw new Error(error);
       const safeOperators = operators || [];
       const start = (page - 1) * limit;
       const pagedOperators = safeOperators.slice(start, start + limit);
       return {
         data: {
-          total: safeOperators.length,
-          limit,
-          page,
           operators: pagedOperators.map((e) => ({
             id: e._id?.toString(),
             username: e.username,
             displayName: e.displayName,
             role: e.role,
           })),
+          pagination,
         },
       };
     },

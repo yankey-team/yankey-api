@@ -32,7 +32,11 @@ export class TransactionModel {
       const skip = (page - 1) * limit;
 
       const [transactions, total] = await Promise.all([
-        this.model.find({ operatorId }).skip(skip).limit(limit),
+        this.model
+          .find({ operatorId })
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit),
         this.model.countDocuments({ operatorId }),
       ]);
 
@@ -59,11 +63,38 @@ export class TransactionModel {
    * @returns An object with either the transactions or an error message
    */
   async findUserTransactions(
-    userId: ID
-  ): Promise<{ data?: ITransaction[]; error?: string }> {
+    userId: ID,
+    pagination?: Pagination
+  ): Promise<{
+    data?: ITransaction[];
+    error?: string;
+    pagination?: PaginationResult;
+  }> {
     try {
-      const transactions = await this.model.find({ userId: userId });
-      return { data: transactions.map((item) => item.toObject()) };
+      const page = pagination?.page || 1;
+      const limit = pagination?.limit || 10;
+      const skip = (page - 1) * limit;
+
+      const [transactions, total] = await Promise.all([
+        this.model
+          .find({ userId: userId })
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit),
+        this.model.countDocuments(),
+      ]);
+
+      const paginationResult: PaginationResult = {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      };
+
+      return {
+        data: transactions.map((item) => item.toObject()),
+        pagination: paginationResult,
+      };
     } catch (err) {
       console.error("findUserTransactions error:", err);
       return { error: "Database error while finding user transactions" };

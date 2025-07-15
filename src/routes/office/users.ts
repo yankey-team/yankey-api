@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
 import { UserModel } from "../../database/client/user/user.model";
 import { TransactionModel } from "../../database/client/transaction/transaction.model";
+import { Pagination } from "../../types";
 
 const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
   // All office user APIs require 'owner' role
@@ -13,7 +14,7 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
   };
 
   // List users
-  fastify.get("/users", {
+  fastify.get<{ Querystring: Pagination }>("/users", {
     schema: {
       description: "List all users",
       tags: ["office"],
@@ -32,9 +33,6 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
             data: {
               type: "object",
               properties: {
-                total: { type: "integer" },
-                limit: { type: "integer" },
-                page: { type: "integer" },
                 users: {
                   type: "array",
                   items: {
@@ -47,6 +45,15 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
                     },
                   },
                 },
+                pagination: {
+                  type: "object",
+                  properties: {
+                    page: { type: "number" },
+                    limit: { type: "number" },
+                    total: { type: "number" },
+                    totalPages: { type: "number" },
+                  },
+                },
               },
             },
           },
@@ -55,9 +62,16 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
     },
     onRequest: [fastify.authenticate("operator"), requireOwnerRole],
     handler: async (request) => {
-      const { limit = 20, page = 1 } = request.query as any;
+      const { limit = 20, page = 1 } = request.query;
       const userModel = new UserModel(request.user.merchantId);
-      const { data: users, error } = await userModel.findAllUsers();
+      const {
+        data: users,
+        error,
+        pagination,
+      } = await userModel.findAllUsers({
+        limit,
+        page,
+      });
       if (error) throw new Error(error);
       const safeUsers = users || [];
       const start = (page - 1) * limit;
@@ -67,15 +81,13 @@ const officeUsers: FastifyPluginAsync = async (fastify): Promise<void> => {
       );
       return {
         data: {
-          total: safeUsers.length,
-          limit,
-          page,
           users: pagedUsers.map((u, i) => ({
             id: u.id,
             displayName: u.displayName,
             phoneNumber: u.phoneNumber,
             balance: balances[i].data,
           })),
+          pagination,
         },
       };
     },

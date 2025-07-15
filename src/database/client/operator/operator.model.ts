@@ -1,5 +1,5 @@
 import { Model } from "mongoose";
-import { ID, Pagination } from "../../../types";
+import { ID, Pagination, PaginationResult } from "../../../types";
 import { IOperator } from "./operator.schema";
 import { createMongooseClient } from "../mongoose";
 import { ITransaction } from "../transaction/transaction.schema";
@@ -189,10 +189,28 @@ export class OperatorModel {
   /**
    * Finds all operators for a given merchant.
    */
-  async findAllByMerchant(merchantId: ID) {
+  async findAllByMerchant(merchantId: ID, pagination?: Pagination) {
     try {
-      const operators = await this.model.find({}).lean();
-      return { data: operators };
+      const page = pagination?.page || 1;
+      const limit = pagination?.limit || 10;
+      const skip = (page - 1) * limit;
+
+      const [operators, total] = await Promise.all([
+        this.model.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit),
+        this.model.countDocuments(),
+      ]);
+
+      const paginationResult: PaginationResult = {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      };
+
+      return {
+        data: operators.map((operator) => operator.toObject()),
+        pagination: paginationResult,
+      };
     } catch (err) {
       console.error("findAllByMerchant error:", err);
       return { error: "Database error while finding operators by merchant" };
