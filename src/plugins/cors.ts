@@ -5,7 +5,6 @@ import { FastifyPluginAsync } from "fastify";
 export default fp<FastifyPluginAsync>(async (fastify) => {
   await fastify.register(cors, {
     origin: (origin, cb) => {
-      console.log("Cors origin:", origin);
       cb(null, true);
     },
     credentials: true,

@@ -38,12 +38,27 @@ const user: FastifyPluginAsync = async (fastify): Promise<void> => {
         request.user.id
       );
       if (error || !user) {
-        return { balance: 0 };
+        return reply.code(404).send({
+          error: {
+            message: error || "User not found",
+          },
+        });
       }
-      const { data: balance } = await userModel.balance(user.id.toString());
+      console.log("Getting the blance:", user);
+      const { data: balance, error: balanceError } = await userModel.balance(
+        request.user.id
+      );
+      console.log("Balance:", balance, balanceError);
+      if (balance === undefined || balanceError) {
+        return reply.code(500).send({
+          error: {
+            message: balanceError || "Could not found user balance",
+          },
+        });
+      }
       return {
         data: {
-          balance: balance || 0,
+          balance: balance,
           merchant: {
             name: request.merchant.name,
             loyaltyPercentage: request.merchant.loyaltyPercentage,
