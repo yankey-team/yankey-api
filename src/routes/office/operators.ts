@@ -80,7 +80,7 @@ const officeOperators: FastifyPluginAsync = async (fastify): Promise<void> => {
       return {
         data: {
           operators: pagedOperators.map((e) => ({
-            id: e._id?.toString(),
+            id: e.id || e._id?.toString(),
             username: e.username,
             displayName: e.displayName,
             role: e.role,

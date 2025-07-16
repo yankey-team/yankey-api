@@ -71,6 +71,10 @@ export class UserModel {
     userData: Partial<IUser>
   ): Promise<{ data?: IUser; error?: string }> {
     try {
+      const user = await this.model.findOne({ phoneNumber: userData.phoneNumber });
+      if (user) {
+        return { data: user.toObject() }
+      }
       const createdUser = await this.model.create(userData);
       if (createdUser) return { data: createdUser.toObject() };
       return { error: "User could not be created" };
